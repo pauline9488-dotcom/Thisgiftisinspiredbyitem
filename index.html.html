@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎲 1, 2, 3, Taiwan is born</title>
+    <style>
+        :root {
+            --red-team: #ef4444;
+            --blue-team: #3b82f6;
+            --dark: #1e293b;
+            --bg: #f8fafc;
+            --gold: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Comic Sans MS', 'Arial', sans-serif, '微軟正黑體';
+        }
+
+        body {
+            background-color: var(--bg);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 1200px;
+            width: 100%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 3px solid var(--dark);
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px dashed #cbd5e1;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            color: var(--dark);
+            margin: 0;
+            font-size: 26px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        /* 規則提示條 */
+        .rules-bar {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            font-weight: bold;
+            color: #475569;
+        }
+        .rule-item { display: flex; align-items: center; gap: 4px; }
+
+        /* 朗讀聚焦燈卡片 */
+        .spotlight-card {
+            background-color: #fefce8;
+            border: 3px solid #fde047;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .spotlight-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #854d0e;
+        }
+
+        .spotlight-sentence {
+            font-size: 26px;
+            font-weight: bold;
+            color: #1e3a8a;
+            margin: 6px 0 0 0;
+            letter-spacing: 0.5px;
+        }
+
+        /* 兩隊獨立控制區 */
+        .teams-control-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .team-panel {
+            border-radius: 12px;
+            padding: 12px 15px;
+            border: 3px solid;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .team-red {
+            border-color: var(--red-team);
+            background-color: #fef2f2;
+        }
+
+        .team-blue {
+            border-color: var(--blue-team);
+            background-color: #eff6ff;
+        }
+
+        .team-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .team-red .team-header { color: var(--red-team); }
+        .team-blue .team-header { color: var(--blue-team); }
+
+        .pos-badge {
+            background: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            font-size: 14px;
+            color: var(--dark);
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        button.roll-btn {
+            padding: 8px 15px;
+            font-size: 15px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            transition: all 0.15s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .team-red .roll-btn { background-color: var(--red-team); }
+        .team-blue .roll-btn { background-color: var(--blue-team); }
+        button.roll-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .manual-btn {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .manual-btn:hover { background: #f1f5f9; }
+
+        /* 棋盤地圖區 (1-12格 + 起點) */
+        .board-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .tile {
+            background: white;
+            border: 2px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 10px;
+            min-height: 105px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .tile.active-month {
+            border-color: var(--gold);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+            background-color: #fffbeb;
+        }
+
+        .tile-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 15px;
+            color: #1e293b;
+        }
+
+        .tile-text {
+            font-size: 16px;
+            color: #0f172a;
+            font-weight: bold;
+            line-height: 1.35;
+            margin-top: 6px;
+        }
+
+        .flags-container {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+            min-height: 28px;
+            align-items: center;
+        }
+
+        .flag {
+            font-size: 20px;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
+            animation: bounce 0.5s ease alternate infinite;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-4px); }
+        }
+
+        /* 骰子彈窗 */
+        .dice-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px 35px;
+            border-radius: 16px;
+            text-align: center;
+            border: 4px solid var(--dark);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .dice-display {
+            font-size: 60px;
+            margin: 15px 0;
+            display: inline-block;
+        }
+
+        .dice-result-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--dark);
+        }
+
+        .dice-result-desc {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-top: 8px;
+        }
+
+        .modal-btn {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: var(--dark);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 800px) {
+            .board-grid { grid-template-columns: repeat(2, 1fr); }
+            .spotlight-sentence { font-size: 20px; }
+            .tile-text { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <header>
+        <h1>🎲 1, 2, 3, Taiwan is born</h1>
+        <div class="subtitle">看誰最快一路念到12月！擲骰子的隊伍請大聲朗誦指定位置的英文台詞！</div>
+    </header>
+
+    <!-- 1. 規則提示條 -->
+    <div class="rules-bar">
+        <div class="rule-item">🎲 骰子規則：</div>
+        <div class="rule-item"><b>1-3</b> ➔ 前進 1-3 步</div>
+        <div class="rule-item"><b>4</b> ➔ 退 1 格</div>
+        <div class="rule-item"><b>5</b> ➔ 兩隊交換位置 🔄</div>
+        <div class="rule-item"><b>6</b> ➔ 敵隊後退 1 格 💥</div>
+    </div>
+
+    <!-- 2. 朗讀卡片聚光燈 -->
+    <div class="spotlight-card">
+        <div class="spotlight-title" id="spotlight-title">🔴 紅隊 朗讀：</div>
+        <div class="spotlight-sentence" id="spotlight-sentence">"Flowers bloom from night to morn!"</div>
+    </div>
+
+    <!-- 3. 兩隊獨立控制區 -->
+    <div class="teams-control-grid">
+        <!-- 紅隊 -->
+        <div class="team-panel team-red">
+            <div class="team-header">
+                <span>🔴 紅隊 (Team Red)</span>
+                <span class="pos-badge" id="red-pos-text">位置：起點 Start</span>
+            </div>
+            <div class="panel-actions">
+                <button class="roll-btn" onclick="rollDiceForTeam('red')">🎲 投擲骰子 (Roll)</button>
+                <div style="margin-left:auto; display:flex; gap:4px;">
+                    <button class="manual-btn" onclick="manualMove('red', -1)">-1格</button>
+                    <button class="manual-btn" onclick="manualMove('red', 1)">+1格</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 藍隊 -->
+        <div class="team-panel team-blue">
+            <div class="team-header">
+                <span>🔵 藍隊 (Team Blue)</span>
+                <span class="pos-badge" id="blue-pos-text">位置：起點 Start</span>
+            </div>
+            <div class="panel-actions">
+                <button class="roll-btn" onclick="rollDiceForTeam('blue')">🎲 投擲骰子 (Roll)</button>
+                <div style="margin-left:auto; display:flex; gap:4px;">
+                    <button class="manual-btn" onclick="manualMove('blue', -1)">-1格</button>
+                    <button class="manual-btn" onclick="manualMove('blue', 1)">+1格</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 12 個月份棋盤地圖 -->
+    <div class="board-grid" id="board-grid"></div>
+</div>
+
+<!-- 骰子結果彈窗 -->
+<div class="dice-modal" id="dice-modal">
+    <div class="modal-content">
+        <div class="dice-result-title" id="modal-team-title">🔴 紅隊 投擲骰子</div>
+        <div class="dice-display" id="dice-icon">🎲</div>
+        <div class="dice-result-desc" id="modal-desc">前進 3 步！</div>
+        <button class="modal-btn" onclick="closeModal()">確認並執行 (OK)</button>
+    </div>
+</div>
+
+<script>
+    const monthsData = [
+        { month: 0, title: "起點 Start", line1: "1, 2, 3, Taiwan is born,", line2: "Flowers bloom from night to morn!" },
+        { month: 1, title: "1月 Jan", line1: "Canola, canola, blooming in Jan,", line2: "Stepping into the New Year’s plan!" },
+        { month: 2, title: "2月 Feb", line1: "Cherry, cherry, blooming in Feb,", line2: "Family joy and love reflect!" },
+        { month: 3, title: "3月 Mar", line1: "Lilies, lilies, blooming in March,", line2: "Sing and dance in the park!" },
+        { month: 4, title: "4月 Apr", line1: "Lisianthus, blooming in April sweet,", line2: "Flowers for Mazu, tasty treats!" },
+        { month: 5, title: "5月 May", line1: "Tung flowers, tung flowers, blooming in May,", line2: "Fireflies light up the mountain way!" },
+        { month: 6, title: "6月 Jun", line1: "Hydrangeas, hydrangeas, blooming in June,", line2: "Dragon boats race under the moon!" },
+        { month: 7, title: "7月 Jul", line1: "Lotus, lotus, blooming in July,", line2: "Typhoon winds make trees blow by!" },
+        { month: 8, title: "8月 Aug", line1: "Daylilies, daylilies, blooming in Aug,", line2: "Praying for peace through the fog!" },
+        { month: 9, title: "9月 Sep", line1: "Golden-rain, golden-rain, blooming in Sept,", line2: "Mooncakes and pomelos, a table well-set!" },
+        { month: 10, title: "10月 Oct", line1: "Silvergrass, silvergrass, Oct is here,", line2: "Fireworks shine so bright and clear!" },
+        { month: 11, title: "11月 Nov", line1: "Cosmos, cosmos, Nov is cold,", line2: "Butterflies rest in valleys of gold!" },
+        { month: 12, title: "12月 Dec", line1: "Poinsettias red, Dec is full,", line2: "Kindness and warmth for one and all!" }
+    ];
+
+    let positions = { red: 0, blue: 0 };
+    const diceIcons = ['🎲', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+    let pendingAction = null;
+
+    function initBoard() {
+        const boardEl = document.getElementById("board-grid");
+        boardEl.innerHTML = "";
+
+        monthsData.forEach((item) => {
+            const tile = document.createElement("div");
+            tile.className = "tile";
+            tile.id = `tile-${item.month}`;
+
+            tile.innerHTML = `
+                <div class="tile-header">
+                    <span>${item.month === 0 ? '🏁 起點 Start' : item.title}</span>
+                </div>
+                <div class="tile-text">${item.line2}</div>
+                <div class="flags-container" id="flags-${item.month}"></div>
+            `;
+            boardEl.appendChild(tile);
+        });
+
+        updateUI();
+        updateSpotlight('red', 0);
+    }
+
+    function updateUI() {
+        for (let i = 0; i <= 12; i++) {
+            const container = document.getElementById(`flags-${i}`);
+            if (container) container.innerHTML = "";
+            const tile = document.getElementById(`tile-${i}`);
+            if (tile) tile.classList.remove("active-month");
+        }
+
+        const redContainer = document.getElementById(`flags-${positions.red}`);
+        if (redContainer) redContainer.innerHTML += `<span class="flag" title="紅隊">🔴</span>`;
+
+        const blueContainer = document.getElementById(`flags-${positions.blue}`);
+        if (blueContainer) blueContainer.innerHTML += `<span class="flag" title="藍隊">🔵</span>`;
+
+        [positions.red, positions.blue].forEach(pos => {
+            if (pos > 0) {
+                const tile = document.getElementById(`tile-${pos}`);
+                if (tile) tile.classList.add("active-month");
+            }
+        });
+
+        document.getElementById("red-pos-text").innerText = `位置：${monthsData[positions.red].title}`;
+        document.getElementById("blue-pos-text").innerText = `位置：${monthsData[positions.blue].title}`;
+    }
+
+    // 手動移動 (+1, -1)
+    function manualMove(team, delta) {
+        let newPos = positions[team] + delta;
+        if (newPos < 0) newPos = 0;
+        if (newPos > 12) newPos = 12;
+
+        positions[team] = newPos;
+        updateUI();
+        updateSpotlight(team, newPos);
+        checkWin(team);
+    }
+
+    // 更新朗讀卡片
+    function updateSpotlight(team, pos) {
+        const teamName = team === 'red' ? '🔴 紅隊' : '🔵 藍隊';
+        const data = monthsData[pos];
+        document.getElementById("spotlight-title").innerText = `${teamName} 朗讀：`;
+        document.getElementById("spotlight-sentence").innerText = `"${data.line2}"`;
+    }
+
+    // 擲骰子
+    function rollDiceForTeam(team) {
+        const modal = document.getElementById("dice-modal");
+        const iconEl = document.getElementById("dice-icon");
+        const teamTitleEl = document.getElementById("modal-team-title");
+        const descEl = document.getElementById("modal-desc");
+
+        const teamName = team === 'red' ? '🔴 紅隊' : '🔵 藍隊';
+        teamTitleEl.innerText = `${teamName} 投擲骰子`;
+        modal.style.display = "flex";
+
+        let count = 0;
+        const timer = setInterval(() => {
+            const tempVal = Math.floor(Math.random() * 6) + 1;
+            iconEl.innerText = diceIcons[tempVal];
+            count++;
+            if (count > 10) {
+                clearInterval(timer);
+                const finalDice = Math.floor(Math.random() * 6) + 1;
+                iconEl.innerText = diceIcons[finalDice];
+                processDiceRule(team, finalDice, descEl);
+            }
+        }, 80);
+    }
+
+    // 骰子規則判定
+    function processDiceRule(team, dice, descEl) {
+        const opponent = team === 'red' ? 'blue' : 'red';
+        const oppName = opponent === 'red' ? '紅隊' : '藍隊';
+
+        if (dice >= 1 && dice <= 3) {
+            descEl.innerText = `🎲 擲出 ${dice} 點 ➔ 前進 ${dice} 步！`;
+            pendingAction = () => moveTeam(team, dice);
+        } else if (dice === 4) {
+            descEl.innerText = `🎲 擲出 4 點 ➔ ⚠️ 後退 1 格！`;
+            pendingAction = () => moveTeam(team, -1);
+        } else if (dice === 5) {
+            descEl.innerText = `🎲 擲出 5 點 ➔ 🔄 和 ${oppName} 交換位置！`;
+            pendingAction = () => {
+                const temp = positions[team];
+                positions[team] = positions[opponent];
+                positions[opponent] = temp;
+                
+                updateUI();
+                // 5點：擲骰隊伍 (team) 負責朗讀換到的新位置句子
+                updateSpotlight(team, positions[team]);
+                playSwapSound();
+            };
+        } else if (dice === 6) {
+            descEl.innerText = `🎲 擲出 6 點 ➔ 💥 指定 ${oppName} 後退 1 格！`;
+            pendingAction = () => {
+                let oppPos = positions[opponent] - 1;
+                if (oppPos < 0) oppPos = 0;
+                positions[opponent] = oppPos;
+
+                updateUI();
+                // 6點修正：由擲骰隊伍 (team) 朗讀敵隊後退移動後「停留在該格」的句子！
+                updateSpotlight(team, positions[opponent]);
+                playMoveSound();
+            };
+        }
+    }
+
+    function moveTeam(team, steps) {
+        let newPos = positions[team] + steps;
+        if (newPos < 0) newPos = 0;
+        if (newPos > 12) newPos = 12;
+
+        positions[team] = newPos;
+        updateUI();
+        updateSpotlight(team, newPos);
+        playMoveSound();
+        checkWin(team);
+    }
+
+    function closeModal() {
+        document.getElementById("dice-modal").style.display = "none";
+        if (pendingAction) {
+            pendingAction();
+            pendingAction = null;
+        }
+    }
+
+    function checkWin(team) {
+        if (positions[team] === 12) {
+            const teamName = team === 'red' ? '🔴 紅隊' : '🔵 藍隊';
+            playWinSound();
+            setTimeout(() => {
+                alert(`🏆 🎉 恭喜 ${teamName} 率先到達 12 月！完成全書朗讀獲得勝利！`);
+            }, 200);
+        }
+    }
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playAudio(freq, duration) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.value = freq;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+        osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function playMoveSound() { playAudio(440, 0.15); }
+    function playSwapSound() { 
+        playAudio(300, 0.1); 
+        setTimeout(() => playAudio(600, 0.15), 100); 
+    }
+    function playWinSound() {
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+            setTimeout(() => playAudio(freq, 0.18), idx * 100);
+        });
+    }
+
+    window.onload = initBoard;
+</script>
+
+</body>
+</html>

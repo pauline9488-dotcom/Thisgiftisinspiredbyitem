@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文創靈感拉霸對決 (Inspired by Taiwan Slot Game)</title>
+  
+  <style>
+    :root {
+      --bg-color: #f0f4f8;
+      --card-bg: #ffffff;
+      --left-color: #e74c3c;
+      --left-accent: #c0392b;
+      --left-light: #fadbd8;
+      --right-color: #3498db;
+      --right-accent: #2980b9;
+      --right-light: #d6eaf8;
+      --slot-bg: #2c3e50;
+      --text-gold: #f1c40f;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      color: #2c3e50;
+      margin-bottom: 8px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    }
+
+    header p {
+      font-size: 1.1rem;
+      color: #555;
+      background: #e2e8f0;
+      padding: 8px 20px;
+      border-radius: 25px;
+      display: inline-block;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .game-board {
+      display: flex;
+      gap: 30px;
+      width: 100%;
+      max-width: 1200px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .team-card {
+      flex: 1;
+      min-width: 320px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      border-top: 10px solid;
+    }
+
+    .team-card.left { border-color: var(--left-color); }
+    .team-card.right { border-color: var(--right-color); }
+
+    .team-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
+    .team-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+    .team-card.left .team-title { color: var(--left-color); }
+    .team-card.right .team-title { color: var(--right-color); }
+
+    .progress-summary {
+      font-size: 0.95rem;
+      color: #666;
+      font-weight: 600;
+    }
+
+    .slots-container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .slot-box {
+      background: var(--slot-bg);
+      border-radius: 12px;
+      padding: 18px;
+      text-align: center;
+      box-shadow: inset 0 4px 10px rgba(0,0,0,0.6);
+      position: relative;
+      overflow: hidden;
+      border: 3px solid #1a252f;
+    }
+
+    .slot-label {
+      font-size: 0.85rem;
+      color: #95a5a6;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 8px;
+    }
+
+    .slot-value {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--text-gold);
+      min-height: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s, filter 0.1s;
+      text-shadow: 0 0 10px rgba(241, 196, 15, 0.4);
+    }
+
+    .slot-value.blur {
+      filter: blur(3px);
+      transform: scale(0.95);
+      color: #fff;
+    }
+
+    .sentence-display {
+      width: 100%;
+      background: #f8f9fa;
+      border: 2px dashed #bdc3c7;
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+      font-size: 1.15rem;
+      color: #2c3e50;
+      margin-bottom: 20px;
+      line-height: 1.5;
+      min-height: 85px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+
+    .highlight-a {
+      color: #d35400;
+      font-weight: bold;
+      text-decoration: underline;
+      margin: 0 4px;
+    }
+
+    .highlight-b {
+      color: #27ae60;
+      font-weight: bold;
+      text-decoration: underline;
+      margin: 0 4px;
+    }
+
+    .spin-btn {
+      width: 100%;
+      padding: 16px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+      margin-bottom: 25px;
+    }
+
+    .team-card.left .spin-btn { background: linear-gradient(135deg, var(--left-color), var(--left-accent)); }
+    .team-card.left .spin-btn:hover { background: linear-gradient(135deg, var(--left-accent), #922b21); box-shadow: 0 6px 12px rgba(231,76,60,0.3); }
+
+    .team-card.right .spin-btn { background: linear-gradient(135deg, var(--right-color), var(--right-accent)); }
+    .team-card.right .spin-btn:hover { background: linear-gradient(135deg, var(--right-accent), #1f618d); box-shadow: 0 6px 12px rgba(52,152,219,0.3); }
+
+    .spin-btn:active { transform: scale(0.97); }
+    .spin-btn:disabled { background: #95a5a6 !important; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .checklist-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .checklist-section {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .checklist-title {
+      font-size: 0.9rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #34495e;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .checklist-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .item-chip {
+      font-size: 0.8rem;
+      padding: 4px 10px;
+      border-radius: 15px;
+      background: #ecf0f1;
+      color: #7f8c8d;
+      border: 1px solid #bdc3c7;
+      transition: all 0.3s;
+      opacity: 0.6;
+    }
+
+    /* Collected States */
+    .team-card.left .item-chip.collected {
+      background: var(--left-light);
+      color: var(--left-accent);
+      border-color: var(--left-color);
+      opacity: 1;
+      font-weight: bold;
+      transform: scale(1.05);
+    }
+
+    .team-card.right .item-chip.collected {
+      background: var(--right-light);
+      color: var(--right-accent);
+      border-color: var(--right-color);
+      opacity: 1;
+      font-weight: bold;
+      transform: scale(1.05);
+    }
+
+    .victory-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+
+    .victory-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .victory-modal {
+      background: #fff;
+      padding: 40px 60px;
+      border-radius: 20px;
+      text-align: center;
+      transform: scale(0.5);
+      transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 0 40px rgba(241, 196, 15, 0.5);
+      position: relative;
+      z-index: 1001;
+    }
+
+    .victory-overlay.show .victory-modal {
+      transform: scale(1);
+    }
+
+    .victory-modal h2 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+
+    .victory-modal.left-win h2 { color: var(--left-color); }
+    .victory-modal.right-win h2 { color: var(--right-color); }
+
+    .victory-modal p {
+      font-size: 1.2rem;
+      color: #555;
+      margin-bottom: 25px;
+    }
+
+    .reset-btn {
+      padding: 12px 25px;
+      font-size: 1.2rem;
+      background: #2c3e50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .reset-btn:hover { background: #1a252f; }
+
+    /* Confetti Particle Styles */
+    .confetti {
+      position: absolute;
+      top: -10px;
+      width: 10px;
+      height: 10px;
+      background-color: #f1c40f;
+      opacity: 0;
+      z-index: 999;
+      animation: fall linear forwards;
+    }
+
+    @keyframes fall {
+      0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+      100% { opacity: 1; transform: translateY(100vh) rotate(720deg); }
+    }
+    
+    @keyframes pulse-border {
+      0% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.7); }
+      70% { box-shadow: 0 0 0 15px rgba(241, 196, 15, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(241, 196, 15, 0); }
+    }
+    .winner-highlight { animation: pulse-border 2s infinite; border-color: #f1c40f !important; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>文創靈感拉霸大對決</h1>
+    <p>句型：This <strong>(A)</strong> is inspired by <strong>(B)</strong>.</p>
+  </header>
+
+  <div class="game-board">
+    <!-- Left Team (Red) -->
+    <div class="team-card left" id="card-left">
+      <div class="team-header">
+        <div class="team-title">紅隊 (Team Red)</div>
+        <div class="progress-summary" id="left-summary">收集進度 - A: 0/9 | B: 0/8</div>
+      </div>
+
+      <div class="slots-container">
+        <div class="slot-box">
+          <div class="slot-label">Item (A)</div>
+          <div class="slot-value" id="left-val-a">???</div>
+        </div>
+        <div class="slot-box">
+          <div class="slot-label">Inspiration (B)</div>
+          <div class="slot-value" id="left-val-b">???</div>
+        </div>
+      </div>
+
+      <div class="sentence-display" id="left-sentence">
+        按下下方按鈕開始拉霸！
+      </div>
+
+      <button class="spin-btn" id="left-btn" onclick="spinSlot('left')">🎰 啟動拉霸</button>
+
+      <!-- Left Team Inventory -->
+      <div class="checklist-container">
+        <div class="checklist-section">
+          <div class="checklist-title">
+            <span>Pool A (Items)</span>
+            <span id="left-count-a">0 / 9</span>
+          </div>
+          <div class="checklist-grid" id="left-grid-a"></div>
+        </div>
+        <div class="checklist-section">
+          <div class="checklist-title">
+            <span>Pool B (Inspiration)</span>
+            <span id="left-count-b">0 / 8</span>
+          </div>
+          <div class="checklist-grid" id="left-grid-b"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Team (Blue) -->
+    <div class="team-card right" id="card-right">
+      <div class="team-header">
+        <div class="team-title">藍隊 (Team Blue)</div>
+        <div class="progress-summary" id="right-summary">收集進度 - A: 0/9 | B: 0/8</div>
+      </div>
+
+      <div class="slots-container">
+        <div class="slot-box">
+          <div class="slot-label">Item (A)</div>
+          <div class="slot-value" id="right-val-a">???</div>
+        </div>
+        <div class="slot-box">
+          <div class="slot-label">Inspiration (B)</div>
+          <div class="slot-value" id="right-val-b">???</div>
+        </div>
+      </div>
+
+      <div class="sentence-display" id="right-sentence">
+        按下下方按鈕開始拉霸！
+      </div>
+
+      <button class="spin-btn" id="right-btn" onclick="spinSlot('right')">🎰 啟動拉霸</button>
+
+      <!-- Right Team Inventory -->
+      <div class="checklist-container">
+        <div class="checklist-section">
+          <div class="checklist-title">
+            <span>Pool A (Items)</span>
+            <span id="right-count-a">0 / 9</span>
+          </div>
+          <div class="checklist-grid" id="right-grid-a"></div>
+        </div>
+        <div class="checklist-section">
+          <div class="checklist-title">
+            <span>Pool B (Inspiration)</span>
+            <span id="right-count-b">0 / 8</span>
+          </div>
+          <div class="checklist-grid" id="right-grid-b"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="victory-overlay" id="victory-overlay">
+    <div class="victory-modal" id="victory-modal">
+      <h2 id="victory-title">🏆 獲勝！</h2>
+      <p>成功收集所有辭庫單字！</p>
+      <button class="reset-btn" onclick="resetGame()">再玩一次 (Play Again)</button>
+    </div>
+  </div>
+
+  <script>
+    const poolA = [
+      "plate", "folder", "purse", "bookmark", 
+      "pouch", "masking tape", "clip", "stamp", "playing card"
+    ];
+
+    const poolB = [
+      "Taiwanese icons", "Taiwan railway", "tourist spots", 
+      "window grilles", "lucky patterns", "food", "fruits", "ka-tsì"
+    ];
+
+    // 遊戲狀態 (追蹤兩隊的收集進度)
+    let gameState = {
+      left: { A: new Set(), B: new Set() },
+      right: { A: new Set(), B: new Set() }
+    };
+    
+    let isGameOver = false;
+
+    function initChecklists() {
+      ['left', 'right'].forEach(team => {
+        const gridA = document.getElementById(`${team}-grid-a`);
+        const gridB = document.getElementById(`${team}-grid-b`);
+        
+        gridA.innerHTML = '';
+        gridB.innerHTML = '';
+
+        poolA.forEach(item => {
+          const chip = document.createElement('div');
+          chip.className = 'item-chip';
+          chip.id = `chip-${team}-a-${item.replace(/\s+/g, '-')}`;
+          chip.textContent = item;
+          gridA.appendChild(chip);
+        });
+
+        poolB.forEach(item => {
+          const chip = document.createElement('div');
+          chip.className = 'item-chip';
+          chip.id = `chip-${team}-b-${item.replace(/\s+/g, '-')}`;
+          chip.textContent = item;
+          gridB.appendChild(chip);
+        });
+        
+        updateProgress(team);
+      });
+    }
+
+    function updateProgress(team) {
+      const countA = gameState[team].A.size;
+      const countB = gameState[team].B.size;
+      const totalA = poolA.length;
+      const totalB = poolB.length;
+
+      document.getElementById(`${team}-count-a`).textContent = `${countA} / ${totalA}`;
+      document.getElementById(`${team}-count-b`).textContent = `${countB} / ${totalB}`;
+      document.getElementById(`${team}-summary`).textContent = `收集進度 - A: ${countA}/${totalA} | B: ${countB}/${totalB}`;
+    }
+
+    function getRandomItem(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+
+    function spinSlot(team) {
+      if (isGameOver) return;
+
+      const btn = document.getElementById(`${team}-btn`);
+      const valAEl = document.getElementById(`${team}-val-a`);
+      const valBEl = document.getElementById(`${team}-val-b`);
+      const sentenceEl = document.getElementById(`${team}-sentence`);
+
+      btn.disabled = true;
+      valAEl.classList.add('blur');
+      valBEl.classList.add('blur');
+
+      let counter = 0;
+      const totalCycles = 20; 
+      const intervalSpeed = 60; 
+
+      const timer = setInterval(() => {
+        valAEl.textContent = getRandomItem(poolA);
+        valBEl.textContent = getRandomItem(poolB);
+        counter++;
+
+        if (counter >= totalCycles) {
+          clearInterval(timer);
+
+          // 決定最終結果
+          const finalA = getRandomItem(poolA);
+          const finalB = getRandomItem(poolB);
+
+          valAEl.textContent = finalA;
+          valBEl.textContent = finalB;
+
+          valAEl.classList.remove('blur');
+          valBEl.classList.remove('blur');
+
+          sentenceEl.innerHTML = `This <span class="highlight-a">${finalA}</span> is inspired by <span class="highlight-b">${finalB}</span>.`;
+
+          // 更新收集狀態
+          handleResult(team, finalA, finalB);
+          
+          if(!isGameOver) {
+             btn.disabled = false;
+          }
+        }
+      }, intervalSpeed);
+    }
+
+    function handleResult(team, itemA, itemB) {
+      const state = gameState[team];
+      
+      // 標記 A 收集
+      if (!state.A.has(itemA)) {
+        state.A.add(itemA);
+        const chip = document.getElementById(`chip-${team}-a-${itemA.replace(/\s+/g, '-')}`);
+        if(chip) chip.classList.add('collected');
+      }
+
+      // 標記 B 收集
+      if (!state.B.has(itemB)) {
+        state.B.add(itemB);
+        const chip = document.getElementById(`chip-${team}-b-${itemB.replace(/\s+/g, '-')}`);
+        if(chip) chip.classList.add('collected');
+      }
+
+      updateProgress(team);
+
+      // 檢查勝利條件
+      if (state.A.size === poolA.length && state.B.size === poolB.length) {
+        triggerWin(team);
+      }
+    }
+
+    function triggerWin(winningTeam) {
+      isGameOver = true;
+      
+      // 禁用所有按鈕
+      document.getElementById('left-btn').disabled = true;
+      document.getElementById('right-btn').disabled = true;
+
+      // 高亮勝利隊伍的卡片
+      document.getElementById(`card-${winningTeam}`).classList.add('winner-highlight');
+
+      // 顯示勝利 Overlay
+      const overlay = document.getElementById('victory-overlay');
+      const modal = document.getElementById('victory-modal');
+      const title = document.getElementById('victory-title');
+      
+      modal.className = `victory-modal ${winningTeam}-win`;
+      title.textContent = winningTeam === 'left' ? '🏆 紅隊獲勝！' : '🏆 藍隊獲勝！';
+      
+      overlay.classList.add('show');
+      
+      createConfetti();
+    }
+
+    function createConfetti() {
+      const colors = ['#e74c3c', '#3498db', '#f1c40f', '#2ecc71', '#9b59b6'];
+      for (let i = 0; i < 150; i++) {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+        
+        // 隨機屬性
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        confetti.style.animationDelay = (Math.random() * 2) + 's';
+        
+        document.body.appendChild(confetti);
+        
+        // 動畫結束後移除元素以節省資源
+        setTimeout(() => {
+          confetti.remove();
+        }, 5000);
+      }
+    }
+
+    function resetGame() {
+      // 隱藏勝利畫面
+      document.getElementById('victory-overlay').classList.remove('show');
+      
+      // 重置狀態
+      gameState = {
+        left: { A: new Set(), B: new Set() },
+        right: { A: new Set(), B: new Set() }
+      };
+      isGameOver = false;
+
+      // 重置 UI
+      ['left', 'right'].forEach(team => {
+        document.getElementById(`card-${team}`).classList.remove('winner-highlight');
+        document.getElementById(`${team}-btn`).disabled = false;
+        document.getElementById(`${team}-val-a`).textContent = '???';
+        document.getElementById(`${team}-val-b`).textContent = '???';
+        document.getElementById(`${team}-sentence`).textContent = '按下下方按鈕開始拉霸！';
+        
+        // 移除 collected class
+        document.querySelectorAll(`#card-${team} .item-chip`).forEach(chip => {
+          chip.classList.remove('collected');
+        });
+      });
+      
+      updateProgress('left');
+      updateProgress('right');
+    }
+
+    // 初始化網頁時載入清單
+    window.onload = initChecklists;
+  </script>
+</body>
+</html>
